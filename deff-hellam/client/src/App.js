@@ -15,65 +15,65 @@ const App = () => {
   const [inputText, setInputText] = useState("");
   const [encryptedText, setEncryptedText] = useState("");
 
-  const GET_KEY = () => {
-    // Generate Diffie-Hellman key pair on the server
-    const server = crypto.createDiffieHellman(1024);
-    const serverKeys = server.generateKeys();
-
-    // Store the server's private key securely
-    const serverPrivateKey = server.getPrivateKey("hex");
-
-    // Share the server's public key with the client
-    const serverPublicKey = server.getPublicKey("hex");
-
-    function computeSharedSecret(clientPublicKey) {
-      const sharedSecret = server.computeSecret(clientPublicKey, "hex");
-      return sharedSecret;
-    }
-  };
-
   // const GET_KEY = () => {
-  //   // Creating Client
+  //   // Generate Diffie-Hellman key pair on the server
+  //   const server = crypto.createDiffieHellman(1024);
+  //   const serverKeys = server.generateKeys();
 
-  //   const client = crypto.createDiffieHellman(256); // 1024 mai karna hai
-  //   const clientPublicKey = client.generateKeys().toString("base64");
-  //     console.log("clientPublicKey>>>>>>>>>> ",clientPublicKey);
-  //   // Get Server Public key
-  //   axios
-  //     .get(`http://localhost:5000/profile`, {
-  //       clientPublicKey: clientPublicKey,
-  //     })
-  //     .then((response) => {
-  //       const serverPublicKey = Buffer.from(response.data, "base64");
-  //       const sharedSecret = client.computeSecret(serverPublicKey, "base64");
+  //   // Store the server's private key securely
+  //   const serverPrivateKey = server.getPrivateKey("hex");
 
-  //       axios
-  //         .post(`http://localhost:5000/homeinfo`, {
-  //           sharedSecret: sharedSecret,
-  //         })
-  //         .then((response) => {
-  //           var iv = Buffer.from(response.data.iv, "hex");
+  //   // Share the server's public key with the client
+  //   const serverPublicKey = server.getPublicKey("hex");
 
-  //           const decipher = crypto.createDecipheriv(
-  //             "aes-256-cbc",
-  //             sharedSecret,
-  //             iv
-  //           );
-
-  //           let decrypted = decipher.update(
-  //             response.data.encrypted,
-  //             "hex",
-  //             "utf8"
-  //           );
-  //           decrypted += decipher.final("utf8");
-
-  //           localStorage.setItem(
-  //             "decrypted_KEY",
-  //             JSON.stringify(decrypted.replaceAll('"', ""))
-  //           );
-  //         });
-  //     });
+  //   function computeSharedSecret(clientPublicKey) {
+  //     const sharedSecret = server.computeSecret(clientPublicKey, "hex");
+  //     return sharedSecret;
+  //   }
   // };
+
+  const GET_KEY = () => {
+    // Creating Client
+
+    const client = crypto.createDiffieHellman(256); // 1024 mai karna hai
+    const clientPublicKey = client.generateKeys().toString("base64");
+      console.log("clientPublicKey>>>>>>>>>> ",clientPublicKey);
+    // Get Server Public key
+    axios
+      .get(`http://localhost:5000/profile`, {
+        clientPublicKey: clientPublicKey,
+      })
+      .then((response) => {
+        const serverPublicKey = Buffer.from(response.data, "base64");
+        const sharedSecret = client.computeSecret(serverPublicKey, "base64");
+
+        axios
+          .post(`http://localhost:5000/homeinfo`, {
+            sharedSecret: sharedSecret,
+          })
+          .then((response) => {
+            var iv = Buffer.from(response.data.iv, "hex");
+
+            const decipher = crypto.createDecipheriv(
+              "aes-256-cbc",
+              sharedSecret,
+              iv
+            );
+
+            let decrypted = decipher.update(
+              response.data.encrypted,
+              "hex",
+              "utf8"
+            );
+            decrypted += decipher.final("utf8");
+
+            localStorage.setItem(
+              "decrypted_KEY",
+              JSON.stringify(decrypted.replaceAll('"', ""))
+            );
+          });
+      });
+  };
 
   useEffect(() => {
     GET_KEY();
